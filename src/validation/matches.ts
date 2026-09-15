@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-export const MATCH_STATUS = {
-  SCHEDULED: "scheduled",
-  LIVE: "live",
-  FINISHED: "finished",
-} as const;
-
-export type MatchStatus = (typeof MATCH_STATUS)[keyof typeof MATCH_STATUS];
+export enum MatchStatus {
+  SCHEDULED = "scheduled",
+  LIVE = "live",
+  FINISHED = "finished",
+}
 
 export const listMatchesQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),

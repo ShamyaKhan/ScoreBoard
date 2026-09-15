@@ -1,5 +1,5 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { MATCH_STATUS, type MatchStatus } from "../validation/matches.js";
+import { MatchStatus } from "../validation/matches.js";
 import { matches } from "../db/schema.js";
 
 type Match = InferSelectModel<typeof matches>;
@@ -17,14 +17,14 @@ export function getMatchStatus(
   }
 
   if (now < start) {
-    return MATCH_STATUS.SCHEDULED;
+    return MatchStatus.SCHEDULED;
   }
 
   if (now >= end) {
-    return MATCH_STATUS.FINISHED;
+    return MatchStatus.FINISHED;
   }
 
-  return MATCH_STATUS.LIVE;
+  return MatchStatus.LIVE;
 }
 
 export async function syncMatchStatus(
