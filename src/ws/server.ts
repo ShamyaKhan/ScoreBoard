@@ -2,6 +2,8 @@ import { WebSocket, WebSocketServer } from "ws";
 import { Server } from "node:http";
 import { type InferSelectModel } from "drizzle-orm";
 import { matches } from "../db/schema.js";
+import { wsArcjet } from "../config/arcjet.js";
+import type { Request } from "express";
 
 type Match = InferSelectModel<typeof matches>;
 
@@ -39,7 +41,26 @@ export function attachWebSocketServer(server: Server) {
     maxPayload: 1024 * 1024,
   });
 
-  wss.on("connection", (socket: WebSocket) => {
+  wss.on("connection", async (socket: WebSocket, req: Request) => {
+    if (wsArcjet) {
+      try {
+        const decision = await wsArcjet.protect(req);
+
+        if (decision.isDenied()) {
+          const code = decision.reason.isRateLimit() ? 1013 : 1008;
+          const reason = decision.reason.isRateLimit()
+            ? "Rate limit exceeded"
+            : "Access denied";
+
+          socket.close(code, reason);
+          return;
+        }
+      } catch (err) {
+        console.log(`WS connection error ${err}`);
+        socket.close(1011, "Server security error");
+      }
+    }
+
     socket.isAlive = true;
 
     socket.on("pong", () => {
